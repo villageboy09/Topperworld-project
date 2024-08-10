@@ -1,6 +1,6 @@
 import requests
 import pandas as pd
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 import gspread
 import streamlit as st
 import json
@@ -38,12 +38,13 @@ def update_google_sheet(data):
     # Load credentials from Streamlit secrets
     google_credentials = st.secrets["google"]["credentials"]
     credentials_dict = json.loads(google_credentials)
-    credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
+    credentials = Credentials.from_service_account_info(credentials_dict, scopes=scope)
     
     try:
         client = gspread.authorize(credentials)
         sheet = client.open_by_key(SHEET_ID).sheet1
         df = pd.DataFrame(data)
+        sheet.clear()  # Clear existing data before updating
         sheet.update([df.columns.tolist()] + df.values.tolist())
         st.success("Google Sheet updated successfully.")
     
