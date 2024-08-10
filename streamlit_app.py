@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # Define the URL of the Flask API
-FLASK_API_URL = 'https://apiend.streamlit.app/analyze'  # Replace with your actual URL
+FLASK_API_URL = 'https://arjun0987.pythonanywhere.com//analyze'  # Replace with your actual URL
 
 st.title('Crop Disease Detection and Recommendations')
 
