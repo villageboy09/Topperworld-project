@@ -4,14 +4,13 @@ from google.oauth2.service_account import Credentials
 import gspread
 import streamlit as st
 import json
-import base64
 
 # Configuration
 NEWS_API_KEY = '9bf84e1aa0da493dbd620fe3eaf359d1'
 SHEET_ID = '1rMMbedzEVB9s72rUmwUAEdqlHt5Ri4VCRxmeOe651Yg'
 
 def fetch_agriculture_news():
-    url = f'https://newsapi.org/v2/everything?q=agriculture&apiKey={NEWS_API_KEY}'
+    url = f'https://newsapi.org/v2/everything?q=agriculture&apiKey={NEWS_API_KEY}&pageSize=10'
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -42,6 +41,7 @@ def update_google_sheet(data):
         
         if 'private_key' in credentials_dict:
             private_key = credentials_dict['private_key']
+            # Ensure private key is correctly formatted
             private_key = ''.join(private_key.split())
             if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
                 private_key = '-----BEGIN PRIVATE KEY-----\n' + private_key
