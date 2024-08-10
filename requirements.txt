@@ -3,4 +3,4 @@ requests
 jsonify
 google-generativeai
 beautifulsoup4
-gspread
+gspread oauth2client
