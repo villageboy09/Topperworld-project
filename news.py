@@ -6,7 +6,7 @@ import gspread
 # Configuration
 NEWS_API_KEY = '9bf84e1aa0da493dbd620fe3eaf359d1'
 SHEET_ID = '1rMMbedzEVB9s72rUmwUAEdqlHt5Ri4VCRxmeOe651Yg'
-SERVICE_ACCOUNT_FILE = 'news.json'
+SERVICE_ACCOUNT_FILE = 'https://github.com/villageboy09/Topperworld-project/main/news.json'
 
 # Function to fetch news
 def fetch_agriculture_news():
