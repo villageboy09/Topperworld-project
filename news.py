@@ -42,12 +42,7 @@ def update_google_sheet(data):
         if 'private_key' in credentials_dict:
             private_key = credentials_dict['private_key']
             # Ensure private key is correctly formatted
-            private_key = ''.join(private_key.split())
-            if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
-                private_key = '-----BEGIN PRIVATE KEY-----\n' + private_key
-            if not private_key.endswith('-----END PRIVATE KEY-----'):
-                private_key = private_key + '\n-----END PRIVATE KEY-----'
-            private_key = '\n'.join([private_key[i:i+64] for i in range(0, len(private_key), 64)])
+            private_key = private_key.replace('\\n', '\n')  # Handle escaped newline characters
             credentials_dict['private_key'] = private_key
         
         credentials = Credentials.from_service_account_info(credentials_dict, scopes=scope)
