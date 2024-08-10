@@ -4,6 +4,7 @@ from google.oauth2.service_account import Credentials
 import gspread
 import streamlit as st
 import json
+import base64
 
 # Configuration
 NEWS_API_KEY = '9bf84e1aa0da493dbd620fe3eaf359d1'
