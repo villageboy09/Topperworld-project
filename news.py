@@ -62,6 +62,7 @@ st.write("Fetching and processing news...")
 
 # Fixed NewsAPI key for demonstration
 news_api_key = "9bf84e1aa0da493dbd620fe3eaf359d1"
+gemini_api_key = st.text_input("Enter your Gemini API key:AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI")
 
 if gemini_api_key:
     # Fetch news
