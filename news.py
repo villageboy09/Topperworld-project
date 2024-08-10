@@ -59,8 +59,8 @@ def update_google_sheet(data):
         
         # Try to create credentials
         try:
-            credentials = Credentials.from_service_account_info(credentials_dict, scopes=scope)
-        except ValueError as e:
+            credentials = service_account.Credentials.from_service_account_info(
+    credentials_dict, scopes=scope)
             print("Error creating credentials:", str(e))
             # If there's an error, try to decode the private key
             if 'private_key' in credentials_dict:
