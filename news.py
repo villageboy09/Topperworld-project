@@ -57,7 +57,7 @@ if response.status_code == 200:
     
     # Google Sheets authentication
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name('path_to_your_json_key_file.json', scope)  # Replace with your actual JSON file name
+    creds = ServiceAccountCredentials.from_json_keyfile_name('news.json', scope)  # Replace with your actual JSON file name
     client = gspread.authorize(creds)
     
     # Open the Google Sheet using its URL
