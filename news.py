@@ -44,27 +44,18 @@ def update_google_sheet(data):
         # Debug: Print the keys in credentials_dict
         print("Credentials dict keys:", credentials_dict.keys())
         
-        if 'private_key' in credentials_dict:
-            private_key = credentials_dict['private_key']
-            
-            # Debug: Print the first and last 10 characters of the private key
-            print("Private key start:", private_key[:10])
-            print("Private key end:", private_key[-10:])
-            
-            # Remove any whitespace and newline characters
-            private_key = ''.join(private_key.split())
-            
-            # Ensure the key has the correct start and end markers
-            if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
-                private_key = '-----BEGIN PRIVATE KEY-----' + private_key
-            if not private_key.endswith('-----END PRIVATE KEY-----'):
-                private_key = private_key + '-----END PRIVATE KEY-----'
-            
-            # Add newline every 64 characters
-            private_key = '\n'.join(private_key[i:i+64] for i in range(0, len(private_key), 64))
-            
-            # Update the credentials_dict with the formatted private key
-            credentials_dict['private_key'] = private_key
+if 'private_key' in credentials_dict:
+    private_key = credentials_dict['private_key']
+    # Remove any whitespace and newline characters
+    private_key = ''.join(private_key.split())
+    # Ensure the key starts and ends correctly
+    if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
+        private_key = '-----BEGIN PRIVATE KEY-----\n' + private_key
+    if not private_key.endswith('-----END PRIVATE KEY-----'):
+        private_key = private_key + '\n-----END PRIVATE KEY-----'
+    # Re-insert newline characters every 64 characters
+    private_key = '\n'.join([private_key[i:i+64] for i in range(0, len(private_key), 64)])
+    credentials_dict['private_key'] = private_key
         
         # Try to create credentials
         try:
