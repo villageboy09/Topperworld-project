@@ -33,14 +33,54 @@ def fetch_agriculture_news():
         st.error(f"Error fetching news: {e}")
         return []
 
+
 def update_google_sheet(data):
     scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     
     try:
         google_credentials = st.secrets["google"]["credentials"]
         credentials_dict = json.loads(google_credentials)
-        credentials = Credentials.from_service_account_info(credentials_dict, scopes=scope)
         
+        # Debug: Print the keys in credentials_dict
+        print("Credentials dict keys:", credentials_dict.keys())
+        
+        if 'private_key' in credentials_dict:
+            private_key = credentials_dict['private_key']
+            
+            # Debug: Print the first and last 10 characters of the private key
+            print("Private key start:", private_key[:10])
+            print("Private key end:", private_key[-10:])
+            
+            # Remove any whitespace and newline characters
+            private_key = ''.join(private_key.split())
+            
+            # Ensure the key has the correct start and end markers
+            if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
+                private_key = '-----BEGIN PRIVATE KEY-----' + private_key
+            if not private_key.endswith('-----END PRIVATE KEY-----'):
+                private_key = private_key + '-----END PRIVATE KEY-----'
+            
+            # Add newline every 64 characters
+            private_key = '\n'.join(private_key[i:i+64] for i in range(0, len(private_key), 64))
+            
+            # Update the credentials_dict with the formatted private key
+            credentials_dict['private_key'] = private_key
+        
+        # Try to create credentials
+        try:
+            credentials = Credentials.from_service_account_info(credentials_dict, scopes=scope)
+        except ValueError as e:
+            print("Error creating credentials:", str(e))
+            # If there's an error, try to decode the private key
+            if 'private_key' in credentials_dict:
+                try:
+                    decoded_key = base64.b64decode(credentials_dict['private_key'])
+                    print("Successfully decoded private key")
+                except Exception as decode_error:
+                    print("Error decoding private key:", str(decode_error))
+            raise
+
+        # Rest of your function...
         client = gspread.authorize(credentials)
         sheet = client.open_by_key(SHEET_ID).sheet1
         df = pd.DataFrame(data)
@@ -48,14 +88,10 @@ def update_google_sheet(data):
         sheet.update([df.columns.tolist()] + df.values.tolist())
         st.success("Google Sheet updated successfully.")
     
-    except KeyError as e:
-        st.error(f"Error accessing credentials: {e}")
-    except json.JSONDecodeError as e:
-        st.error(f"Error parsing credentials JSON: {e}")
-    except gspread.exceptions.APIError as e:
-        st.error(f"Error updating Google Sheet: {e}")
     except Exception as e:
-        st.error(f"Unexpected error: {e}")
+        st.error(f"Unexpected error: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 def main():
     st.title("Agriculture News Updater")
