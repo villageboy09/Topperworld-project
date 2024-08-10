@@ -8,10 +8,7 @@ import io
 app = Flask(__name__)
 
 # Set the environment variable for API key
-os.environ["API_KEY"] = "AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI"
-
-# Configure the API
-api_key = os.environ.get("API_KEY")
+api_key = os.getenv("AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI")
 if not api_key:
     raise ValueError("API key is not set in environment variables.")
 genai.configure(api_key=api_key)
@@ -41,6 +38,7 @@ def upload_image(image_file):
         response = genai.upload_file(path=temp_path, display_name="Processed Image")
         return response.uri
     except Exception as e:
+        print(f"Error uploading image: {e}")
         return None
 
 # Function to analyze image and get recommendations
@@ -53,6 +51,7 @@ def analyze_image(image_uri):
         response = model.generate_content([image_uri, prompt])
         return response.text
     except Exception as e:
+        print(f"Error analyzing image: {e}")
         return "Unable to generate recommendations."
 
 # Define the API endpoint
@@ -71,4 +70,4 @@ def analyze():
         return jsonify({"error": "Failed to upload image"}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
