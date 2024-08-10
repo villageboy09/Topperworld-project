@@ -1,40 +1,77 @@
 import os
-import google.generativeai as genai
+import requests
+import pandas as pd
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
-os.environ["GEMINI_API_KEY"] = "AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI"
+# Set your News API key here
+news_api_key = "9bf84e1aa0da493dbd620fe3eaf359d1"
 
-# Configure the API key for the Google Generative AI
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+# Define the News API endpoint
+news_api_url = "https://newsapi.org/v2/everything"
 
-# Define the generation configuration for the model
-generation_config = {
-    "temperature": 1,
-    "top_p": 0.95,
-    "top_k": 64,
-    "max_output_tokens": 8192,
-    "response_mime_type": "text/plain",
+# Define query parameters for fetching agriculture news
+params = {
+    'q': 'agriculture',
+    'language': 'en',
+    'pageSize': 10,  # Fetch 10 news articles
+    'apiKey': news_api_key,
 }
 
-# Create the GenerativeModel object with the specified model and configuration
-model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    generation_config=generation_config,
-)
+# Function to truncate the description to 100 words
+def truncate_description(description, word_limit=100):
+    words = description.split()
+    if len(words) > word_limit:
+        return ' '.join(words[:word_limit]) + '...'
+    return description
 
-# Start a chat session
-chat_session = model.start_chat(
-    history=[]
-)
+# Make a request to the News API
+response = requests.get(news_api_url, params=params)
 
-# Define the input prompt for generating agriculture news
-prompt = """
-Generate 10 latest agriculture news headlines from all over the world.
-Format the response as follows:
-Image URL, Headline, and Description
-"""
-
-# Send the input prompt to the chat session
-response = chat_session.send_message(prompt)
-
-# Print the response text
-print(response.text)
+# Check if the request was successful
+if response.status_code == 200:
+    news_data = response.json()
+    articles = news_data.get('articles', [])
+    
+    # Prepare a list to hold the news data
+    news_list = []
+    
+    # Format the articles as Image URL, Headline, and Description
+    for i, article in enumerate(articles):
+        image_url = article.get('urlToImage', 'No image available')
+        headline = article.get('title', 'No title available')
+        description = article.get('description', 'No description available')
+        
+        # Truncate description to 100 words
+        truncated_description = truncate_description(description)
+        
+        # Append the news data to the list
+        news_list.append({
+            'Image URL': image_url,
+            'Headline': headline,
+            'Description': truncated_description
+        })
+    
+    # Convert the news list to a DataFrame
+    news_df = pd.DataFrame(news_list)
+    
+    # Google Sheets authentication
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds = ServiceAccountCredentials.from_json_keyfile_name('path_to_your_json_key_file.json', scope)  # Replace with your actual JSON file name
+    client = gspread.authorize(creds)
+    
+    # Open the Google Sheet using its URL
+    sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1rMMbedzEVB9s72rUmwUAEdqlHt5Ri4VCRxmeOe651Yg/edit?gid=0")
+    
+    # Select the first worksheet
+    worksheet = sheet.get_worksheet(0)
+    
+    # Clear the existing content in the worksheet (optional)
+    worksheet.clear()
+    
+    # Update the worksheet with the new data
+    worksheet.update([news_df.columns.values.tolist()] + news_df.values.tolist())
+    
+    print("News data has been written to your Google Sheet.")
+else:
+    print(f"Failed to fetch news: {response.status_code}")
