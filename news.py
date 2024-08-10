@@ -27,7 +27,7 @@ def fetch_agriculture_news(api_key, num_news=10):
 # Initialize Google Generative AI
 def initialize_gemini_api(api_key):
     # Set up the environment variable for API key
-    os.environ["GEMINI_API_KEY"] = api_key
+    os.environ["GEMINI_API_KEY"] = AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI
     
     # Configure the Gemini AI with your API key
     genai.configure(api_key=api_key)
@@ -62,7 +62,6 @@ st.write("Fetching and processing news...")
 
 # Fixed NewsAPI key for demonstration
 news_api_key = "9bf84e1aa0da493dbd620fe3eaf359d1"
-gemini_api_key = st.text_input("AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI")
 
 if gemini_api_key:
     # Fetch news
