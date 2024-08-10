@@ -44,7 +44,7 @@ def update_google_sheet(data):
         # Debug: Print the keys in credentials_dict
         print("Credentials dict keys:", credentials_dict.keys())
         
-if 'private_key' in credentials_dict:
+    if 'private_key' in credentials_dict:
     private_key = credentials_dict['private_key']
     # Remove any whitespace and newline characters
     private_key = ''.join(private_key.split())
