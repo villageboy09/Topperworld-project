@@ -6,25 +6,28 @@ import streamlit as st
 import json
 
 # Configuration
-NEWS_API_KEY = '9bf84e1aa0da493dbd620fe3eaf359d1'
 SHEET_ID = '1rMMbedzEVB9s72rUmwUAEdqlHt5Ri4VCRxmeOe651Yg'
+NEWS_API_TOKEN = 'UkK6MzB7AEmOmAbcSvbIHVvozyeqUaXEe2WdpWrc'
 
 def fetch_agriculture_news():
-    url = f'https://newsapi.org/v2/everything?q=agriculture&apiKey={NEWS_API_KEY}&pageSize=10'
+    url = f'https://api.thenewsapi.com/v1/news/all?api_token={NEWS_API_TOKEN}&language=en&limit=10'
     try:
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-        articles = data.get('articles', [])
-        
+        articles = data.get('data', [])  # Extract articles from the 'data' key
+
+        # Filter articles related to agriculture
+        agriculture_articles = [article for article in articles if 'agriculture' in article.get('title', '').lower() or 'agriculture' in article.get('description', '').lower()]
+
         news_data = []
-        for article in articles:
+        for article in agriculture_articles:
             description = article.get('description', '')
             # Ensure description is at least 250 characters
             if len(description) < 250:
                 description = f"{description} {' '.join(['Additional information'] * ((250 - len(description)) // 20))}"
             news_data.append({
-                'Image URL': article.get('urlToImage', ''),
+                'Image URL': article.get('image_url', ''),
                 'Title': article.get('title', ''),
                 'Description': description
             })
@@ -69,14 +72,14 @@ def main():
         with st.spinner("Fetching news..."):
             news_data = fetch_agriculture_news()
             if news_data:
-                st.info(f"Fetched {len(news_data)} news articles.")
+                st.info(f"Fetched {len(news_data)} agriculture-related news articles.")
                 with st.spinner("Updating Google Sheet..."):
                     update_google_sheet(news_data)
             else:
-                st.warning("No news data to update.")
+                st.warning("No agriculture-related news data to update.")
     
     st.markdown("---")
-    st.write("This app fetches agriculture news and updates a Google Sheet.")
+    st.write("This app fetches agriculture-related news and updates a Google Sheet.")
 
 if __name__ == '__main__':
     main()
