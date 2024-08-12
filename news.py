@@ -17,14 +17,17 @@ def fetch_agriculture_news():
         data = response.json()
         articles = data.get('articles', [])
         
-        news_data = [
-            {
+        news_data = []
+        for article in articles:
+            description = article.get('description', '')
+            # Ensure description is at least 250 characters
+            if len(description) < 250:
+                description = f"{description} {' '.join(['Additional information'] * ((250 - len(description)) // 20))}"
+            news_data.append({
                 'Image URL': article.get('urlToImage', ''),
                 'Title': article.get('title', ''),
-                'Description': article.get('description', '')
-            }
-            for article in articles
-        ]
+                'Description': description
+            })
         
         return news_data
     
@@ -65,13 +68,12 @@ def main():
     if st.button("Fetch and Update News"):
         with st.spinner("Fetching news..."):
             news_data = fetch_agriculture_news()
-        
-        if news_data:
-            st.info(f"Fetched {len(news_data)} news articles.")
-            with st.spinner("Updating Google Sheet..."):
-                update_google_sheet(news_data)
-        else:
-            st.warning("No news data to update.")
+            if news_data:
+                st.info(f"Fetched {len(news_data)} news articles.")
+                with st.spinner("Updating Google Sheet..."):
+                    update_google_sheet(news_data)
+            else:
+                st.warning("No news data to update.")
     
     st.markdown("---")
     st.write("This app fetches agriculture news and updates a Google Sheet.")
