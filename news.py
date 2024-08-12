@@ -21,7 +21,7 @@ def fetch_agriculture_news():
             {
                 'Image URL': article.get('urlToImage', ''),
                 'Title': article.get('title', ''),
-                'Description': article.get('description', '')
+                'Content': article.get('content', '')
             }
             for article in articles
         ]
