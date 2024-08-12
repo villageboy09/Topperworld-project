@@ -6,17 +6,20 @@ import streamlit as st
 import json
 
 # Configuration
-NEWS_API_KEY = '9bf84e1aa0da493dbd620fe3eaf359d1'
+GEMINI_API_KEY = 'AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI'
 SHEET_ID = '1rMMbedzEVB9s72rUmwUAEdqlHt5Ri4VCRxmeOe651Yg'
 
 def fetch_agriculture_news():
-    url = f'https://newsapi.org/v2/everything?q=agriculture&apiKey={NEWS_API_KEY}&pageSize=10'
+    # Replace with the actual Gemini API endpoint
+    url = f'https://api.gemini.com/v1/news?q=agriculture&apiKey={GEMINI_API_KEY}&pageSize=10'
+    
     try:
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
         articles = data.get('articles', [])
         
+        # Adjust based on the actual Gemini API response structure
         news_data = [
             {
                 'Image URL': article.get('urlToImage', ''),
