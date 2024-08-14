@@ -62,11 +62,10 @@ def fetch_agriculture_data(state=''):
         st.error(f"Error fetching agriculture data: {e}")
         return []
 
-# The rest of the code remains the same
-
 def update_google_sheet(data):
     # ... (unchanged)
-    
+    pass
+
 def main():
     st.title("Agriculture Data Updater")
     
@@ -75,7 +74,7 @@ def main():
     if st.button("Fetch and Update Data"):
         with st.spinner("Fetching agriculture data..."):
             agriculture_data = fetch_agriculture_data(state)
-            
+        
         if agriculture_data:
             st.info(f"Fetched {len(agriculture_data)} agriculture records.")
             with st.spinner("Updating Google Sheet..."):
