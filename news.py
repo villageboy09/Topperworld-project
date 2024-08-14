@@ -6,33 +6,45 @@ import streamlit as st
 import json
 
 # Configuration
-GEMINI_API_KEY = 'AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI'
-SHEET_ID = '1rMMbedzEVB9s72rUmwUAEdqlHt5Ri4VCRxmeOe651Yg'
+API_KEY = 'YOUR_API_KEY_HERE'  # Replace with your actual API key
+SHEET_ID = '579b464db66ec23bdd00000178b302e7013b49d67c2084993f975dc9'
 
-def fetch_agriculture_news():
-    # Replace with the actual Gemini API endpoint
-    url = f'https://api.gemini.com/v1/news?q=agriculture&apiKey={GEMINI_API_KEY}&pageSize=10'
+def fetch_agriculture_data(state='', items_per_page=10, offset=0):
+    url = f'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070'
+    params = {
+        'api-key': API_KEY,
+        'format': 'json',
+        'limit': items_per_page,
+        'offset': offset,
+    }
+    if state:
+        params['filters[state]'] = state
     
     try:
-        response = requests.get(url)
+        response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
-        articles = data.get('articles', [])
+        records = data.get('records', [])
         
-        # Adjust based on the actual Gemini API response structure
-        news_data = [
+        agriculture_data = [
             {
-                'Image URL': article.get('urlToImage', ''),
-                'Title': article.get('title', ''),
-                'Content': article.get('content', '')
+                'State': record.get('state', ''),
+                'District': record.get('district', ''),
+                'Market': record.get('market', ''),
+                'Commodity': record.get('commodity', ''),
+                'Variety': record.get('variety', ''),
+                'Arrival Date': record.get('arrival_date', ''),
+                'Min Price': record.get('min_price', ''),
+                'Max Price': record.get('max_price', ''),
+                'Modal Price': record.get('modal_price', '')
             }
-            for article in articles
+            for record in records
         ]
         
-        return news_data
+        return agriculture_data
     
     except requests.RequestException as e:
-        st.error(f"Error fetching news: {e}")
+        st.error(f"Error fetching agriculture data: {e}")
         return []
 
 def update_google_sheet(data):
@@ -44,8 +56,7 @@ def update_google_sheet(data):
         
         if 'private_key' in credentials_dict:
             private_key = credentials_dict['private_key']
-            # Ensure private key is correctly formatted
-            private_key = private_key.replace('\\n', '\n')  # Handle escaped newline characters
+            private_key = private_key.replace('\\n', '\n')
             credentials_dict['private_key'] = private_key
         
         credentials = Credentials.from_service_account_info(credentials_dict, scopes=scope)
@@ -63,21 +74,24 @@ def update_google_sheet(data):
         traceback.print_exc()
 
 def main():
-    st.title("Agriculture News Updater")
+    st.title("Agriculture Data Updater")
     
-    if st.button("Fetch and Update News"):
-        with st.spinner("Fetching news..."):
-            news_data = fetch_agriculture_news()
+    state = st.text_input("Enter state name (optional):", "")
+    items_per_page = st.number_input("Number of items to fetch:", min_value=1, max_value=100, value=10)
+    
+    if st.button("Fetch and Update Data"):
+        with st.spinner("Fetching agriculture data..."):
+            agriculture_data = fetch_agriculture_data(state, items_per_page)
         
-        if news_data:
-            st.info(f"Fetched {len(news_data)} news articles.")
+        if agriculture_data:
+            st.info(f"Fetched {len(agriculture_data)} agriculture records.")
             with st.spinner("Updating Google Sheet..."):
-                update_google_sheet(news_data)
+                update_google_sheet(agriculture_data)
         else:
-            st.warning("No news data to update.")
+            st.warning("No agriculture data to update.")
     
     st.markdown("---")
-    st.write("This app fetches agriculture news and updates a Google Sheet.")
+    st.write("This app fetches agriculture data from the Indian government API and updates a Google Sheet.")
 
 if __name__ == '__main__':
     main()
