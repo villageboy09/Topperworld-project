@@ -66,7 +66,7 @@ def fetch_agriculture_data(state=''):
 
 def update_google_sheet(data):
     # ... (unchanged)
-
+    
 def main():
     st.title("Agriculture Data Updater")
     
