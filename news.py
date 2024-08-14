@@ -9,6 +9,7 @@ import json
 API_KEY = '579b464db66ec23bdd00000178b302e7013b49d67c2084993f975dc9'  # Replace with your actual API key
 SHEET_ID = '1rMMbedzEVB9s72rUmwUAEdqlHt5Ri4VCRxmeOe651Yg'
 
+# Function to fetch agriculture data
 def fetch_agriculture_data(state=''):
     url = f'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070'
     params = {
@@ -62,9 +63,29 @@ def fetch_agriculture_data(state=''):
         st.error(f"Error fetching agriculture data: {e}")
         return []
 
+# Function to update Google Sheet
 def update_google_sheet(data):
-    # ... (unchanged)
-    pass
+    # Load credentials from the service account file
+    credentials = Credentials.from_service_account_file('path/to/your/service_account.json')  # Update with your JSON key file path
+    client = gspread.authorize(credentials)
+    
+    # Open the Google Sheet
+    sheet = client.open_by_key(SHEET_ID).sheet1  # Access the first sheet
+
+    # Prepare data for insertion
+    for record in data:
+        row = [
+            record['State'],
+            record['District'],
+            record['Market'],
+            record['Commodity'],
+            record['Variety'],
+            record['Arrival Date'],
+            record['Min Price'],
+            record['Max Price'],
+            record['Modal Price']
+        ]
+        sheet.append_row(row)  # Append the row to the sheet
 
 def main():
     st.title("Agriculture Data Updater")
@@ -79,6 +100,7 @@ def main():
             st.info(f"Fetched {len(agriculture_data)} agriculture records.")
             with st.spinner("Updating Google Sheet..."):
                 update_google_sheet(agriculture_data)
+                st.success("Google Sheet updated successfully!")
         else:
             st.warning("No agriculture data to update.")
     
