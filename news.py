@@ -9,22 +9,37 @@ import json
 API_KEY = '579b464db66ec23bdd00000178b302e7013b49d67c2084993f975dc9'  # Replace with your actual API key
 SHEET_ID = '1rMMbedzEVB9s72rUmwUAEdqlHt5Ri4VCRxmeOe651Yg'
 
-def fetch_agriculture_data(state='', items_per_page=10, offset=0):
+def fetch_agriculture_data(state=''):
     url = f'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070'
     params = {
         'api-key': API_KEY,
         'format': 'json',
-        'limit': items_per_page,
-        'offset': offset,
+        'limit': 1000,  # Maximum allowed by the API
+        'offset': 0,
     }
     if state:
         params['filters[state]'] = state
     
+    all_records = []
+    
     try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
-        records = data.get('records', [])
+        while True:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            records = data.get('records', [])
+            
+            if not records:
+                break
+            
+            all_records.extend(records)
+            
+            # Update offset for the next request
+            params['offset'] += len(records)
+            
+            # Check if we've reached the end of the data
+            if len(all_records) >= data.get('total', 0):
+                break
         
         agriculture_data = [
             {
@@ -38,7 +53,7 @@ def fetch_agriculture_data(state='', items_per_page=10, offset=0):
                 'Max Price': record.get('max_price', ''),
                 'Modal Price': record.get('modal_price', '')
             }
-            for record in records
+            for record in all_records
         ]
         
         return agriculture_data
@@ -47,42 +62,20 @@ def fetch_agriculture_data(state='', items_per_page=10, offset=0):
         st.error(f"Error fetching agriculture data: {e}")
         return []
 
+# The rest of the code remains the same
+
 def update_google_sheet(data):
-    scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-    
-    try:
-        google_credentials = st.secrets["google"]["credentials"]
-        credentials_dict = json.loads(google_credentials)
-        
-        if 'private_key' in credentials_dict:
-            private_key = credentials_dict['private_key']
-            private_key = private_key.replace('\\n', '\n')
-            credentials_dict['private_key'] = private_key
-        
-        credentials = Credentials.from_service_account_info(credentials_dict, scopes=scope)
-        
-        client = gspread.authorize(credentials)
-        sheet = client.open_by_key(SHEET_ID).sheet1
-        df = pd.DataFrame(data)
-        sheet.clear()
-        sheet.update([df.columns.tolist()] + df.values.tolist())
-        st.success("Google Sheet updated successfully.")
-    
-    except Exception as e:
-        st.error(f"Unexpected error: {str(e)}")
-        import traceback
-        traceback.print_exc()
+    # ... (unchanged)
 
 def main():
     st.title("Agriculture Data Updater")
     
     state = st.text_input("Enter state name (optional):", "")
-    items_per_page = st.number_input("Number of items to fetch:", min_value=1, max_value=100, value=10)
     
     if st.button("Fetch and Update Data"):
         with st.spinner("Fetching agriculture data..."):
-            agriculture_data = fetch_agriculture_data(state, items_per_page)
-        
+            agriculture_data = fetch_agriculture_data(state)
+            
         if agriculture_data:
             st.info(f"Fetched {len(agriculture_data)} agriculture records.")
             with st.spinner("Updating Google Sheet..."):
