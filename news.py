@@ -6,8 +6,8 @@ import streamlit as st
 import json
 
 # Configuration
-API_KEY = 'YOUR_API_KEY_HERE'  # Replace with your actual API key
-SHEET_ID = '579b464db66ec23bdd00000178b302e7013b49d67c2084993f975dc9'
+API_KEY = '579b464db66ec23bdd00000178b302e7013b49d67c2084993f975dc9'  # Replace with your actual API key
+SHEET_ID = '1rMMbedzEVB9s72rUmwUAEdqlHt5Ri4VCRxmeOe651Yg'
 
 def fetch_agriculture_data(state='', items_per_page=10, offset=0):
     url = f'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070'
