@@ -65,27 +65,31 @@ def fetch_agriculture_data(state=''):
 
 # Function to update Google Sheet
 def update_google_sheet(data):
-    # Load credentials from the service account file
-    credentials = Credentials.from_service_account_file('path/to/your/service_account.json')  # Update with your JSON key file path
-    client = gspread.authorize(credentials)
+    scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
     
-    # Open the Google Sheet
-    sheet = client.open_by_key(SHEET_ID).sheet1  # Access the first sheet
+    try:
+        google_credentials = st.secrets["google"]["credentials"]
+        credentials_dict = json.loads(google_credentials)
 
-    # Prepare data for insertion
-    for record in data:
-        row = [
-            record['State'],
-            record['District'],
-            record['Market'],
-            record['Commodity'],
-            record['Variety'],
-            record['Arrival Date'],
-            record['Min Price'],
-            record['Max Price'],
-            record['Modal Price']
-        ]
-        sheet.append_row(row)  # Append the row to the sheet
+        if 'private_key' in credentials_dict:
+            private_key = credentials_dict['private_key']
+            private_key = private_key.replace('\\n', '\n')
+            credentials_dict['private_key'] = private_key
+
+        credentials = Credentials.from_service_account_info(credentials_dict, scopes=scope)
+        client = gspread.authorize(credentials)
+        sheet = client.open_by_key(SHEET_ID).sheet1
+
+        # Clear existing data and update with new data
+        df = pd.DataFrame(data)
+        sheet.clear()
+        sheet.update([df.columns.tolist()] + df.values.tolist())
+        st.success("Google Sheet updated successfully.")
+    
+    except Exception as e:
+        st.error(f"Unexpected error: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 def main():
     st.title("Agriculture Data Updater")
@@ -100,7 +104,6 @@ def main():
             st.info(f"Fetched {len(agriculture_data)} agriculture records.")
             with st.spinner("Updating Google Sheet..."):
                 update_google_sheet(agriculture_data)
-                st.success("Google Sheet updated successfully!")
         else:
             st.warning("No agriculture data to update.")
     
